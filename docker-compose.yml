@@ -1,16 +1,20 @@
-version: '3.0'
 services:
+
   rabbitmq:
     image: rabbitmq:3-management
     restart: always
     ports:
     - 5672:5672 # port for the daemon API
     - 15672:15672 # port for the RabbitMQ management interface
+
+
   consumer:
     build: consumer
-    links:
+    links: # link the consumer to the rabbitmq service so it can access it by the alias "rabbitmq" in the /etc/hosts file of the container
     - rabbitmq
     command: python consumer.py -p 5672 -s rabbitmq
+
+
   producer:
     build: producer
     links:

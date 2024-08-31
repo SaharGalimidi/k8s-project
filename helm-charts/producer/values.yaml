@@ -1,0 +1,10 @@
+appName: producer
+namespace: default
+
+image:
+  repository: sahar567/producer-image
+  tag: latest
+  pullPolicy: IfNotPresent
+
+podSpec:
+  numReplicas: 1

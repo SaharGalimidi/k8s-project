@@ -1,12 +1,19 @@
 import pika, logging, sys, argparse, time
 from argparse import RawTextHelpFormatter
 from time import sleep
+from prometheus_client import start_http_server, Counter
+
+CONSUMED_MESSAGES = Counter('consumer_messages_count', 'Number of messages consumed')
+
 
 def on_message(channel, method_frame, header_frame, body):
     print method_frame.delivery_tag
     print body
     print
     LOG.info('Message has been received %s', body)
+    # Increment the Prometheus counter
+    CONSUMED_MESSAGES.inc()
+
     channel.basic_ack(delivery_tag=method_frame.delivery_tag)
 
 
@@ -30,6 +37,10 @@ if __name__ == '__main__':
     sleep(5)
     logging.basicConfig(level=logging.INFO)
     LOG = logging.getLogger(__name__)
+
+    start_http_server(9422)
+    LOG.info("Prometheus metrics available at http://localhost:9422/metrics")
+    
     credentials = pika.PlainCredentials('guest', 'guest')
     parameters = pika.ConnectionParameters(args.server,
                                            int(args.port),

@@ -1,0 +1,10 @@
+appName: consumer
+namespace: default
+
+image:
+  repository: sahar567/consumer-image
+  tag: latest
+  pullPolicy: IfNotPresent
+
+podSpec:
+  numReplicas: 1

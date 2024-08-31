@@ -1,0 +1,21 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ .Values.appName }}
+  labels:
+    app: {{ .Values.appName }}
+spec: # The spec field describes the desired state of the service.
+  selector:
+    app: {{ .Values.appName }}
+  ports:
+    - name: daemon-api
+      protocol: TCP
+      port: 5672
+      targetPort: 5672
+
+    - name: management-interface
+      protocol: TCP
+      port: 15672
+      targetPort: 15672
+
+  type: ClusterIP
