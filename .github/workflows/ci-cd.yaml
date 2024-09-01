@@ -47,16 +47,17 @@ jobs:
       uses: azure/setup-helm@v4.2.0
       id: install
 
-    # - name: Set up kubeconfig
-    #   run: |
-    #     echo "${{ secrets.KUBE_CONFIG }}" | base64 -d > kubeconfig
-    #     chmod 600 kubeconfig
-    #     echo "KUBECONFIG=$(pwd)/kubeconfig" >> $GITHUB_ENV
+    - name: Set up kubeconfig
+      run: |
+        echo "${{ secrets.KUBE_CONFIG }}" | base64 -d > $HOME/.kube/config
+        echo "KUBECONFIG=$HOME/.kube/config" >> $GITHUB_ENV
+        chmod 600 $HOME/.kube/config
+
 
     - name: Deploy RabbitMQ
       run: |
         helm repo add bitnami https://charts.bitnami.com/bitnami
-        helm upgrade --install rabbitmq bitnami/rabbitmq -f helm-charts/rabbitmq/values.yaml
+        helm install my-rabbitmq bitnami/rabbitmq --version 14.6.9 -f helm-charts/rabbitmq/values.yaml
 
     - name: Deploy Consumer
       run: helm upgrade --install consumer ./helm-charts/consumer
