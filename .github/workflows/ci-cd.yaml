@@ -1,0 +1,69 @@
+name: CI/CD Pipeline
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+  workflow_dispatch:
+
+jobs:
+  build-and-push:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v2
+
+    - name: Set up Docker Buildx
+      uses: docker/setup-buildx-action@v1
+
+    - name: Login to DockerHub
+      uses: docker/login-action@v1 
+      with:
+        username: ${{ secrets.DOCKERHUB_USERNAME }}
+        password: ${{ secrets.DOCKERHUB_PASSWORD }}
+
+    - name: Build and push consumer image
+      uses: docker/build-push-action@v2
+      with:
+        context: ./consumer
+        push: true
+        tags: sahar567/consumer-image:latest
+
+    - name: Build and push producer image
+      uses: docker/build-push-action@v2
+      with:
+        context: ./producer
+        push: true
+        tags: sahar567/producer-image:latest
+
+  deploy:
+    needs: build-and-push
+    runs-on: ubuntu-latest
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    steps:
+    - uses: actions/checkout@v2
+
+    - name: Install Helm
+      uses: azure/setup-helm@v1
+      with:
+        version: 'v3.4.0'
+
+    - name: Set up kubeconfig
+      run: |
+        echo "${{ secrets.KUBE_CONFIG }}" | base64 -d > kubeconfig
+        chmod 600 kubeconfig
+        echo "KUBECONFIG=$(pwd)/kubeconfig" >> $GITHUB_ENV
+
+    - name: Deploy RabbitMQ
+      run: |
+        helm repo add bitnami https://charts.bitnami.com/bitnami
+        helm upgrade --install rabbitmq bitnami/rabbitmq -f helm-charts/rabbitmq/values.yaml
+
+    - name: Deploy Consumer
+      run: helm upgrade --install consumer ./helm-charts/consumer
+
+    - name: Deploy Producer
+      run: helm upgrade --install producer ./helm-charts/producer
+
+    - name: Clean up
+      run: rm kubeconfig
