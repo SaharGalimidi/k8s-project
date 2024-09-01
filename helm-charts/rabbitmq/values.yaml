@@ -15,3 +15,12 @@ persistence:
   accessModes:
     - ReadWriteOnce
   size: 8Gi
+
+metrics:
+  enabled: true
+  image:
+    registry: docker.io
+    repository: bitnami/rabbitmq-exporter
+    tag: latest
+  serviceMonitor:
+    enabled: true
