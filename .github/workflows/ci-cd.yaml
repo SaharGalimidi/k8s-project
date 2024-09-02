@@ -45,7 +45,6 @@ jobs:
 
     - name: Set up kubectl
       uses: azure/setup-kubectl@v4
-  
 
     - name: Install Helm
       uses: azure/setup-helm@v4.2.0
@@ -53,11 +52,12 @@ jobs:
 
     - name: Set up kubeconfig
       run: |
-        mkdir -p $HOME/.kube
-        echo "${{ secrets.KUBE_CONFIG }}" | base64 -d > $HOME/.kube/config
-        echo "KUBECONFIG=$HOME/.kube/config" >> $GITHUB_ENV
+        echo "${{ secrets.KUBE_CONFIG }}" | base64 --decode > $HOME/.kube/config
         chmod 600 $HOME/.kube/config
+        export KUBECONFIG=$HOME/.kube/config
 
+    - name: Test Kubernetes access
+      run: kubectl get nodes
 
     - name: Deploy RabbitMQ
       run: |
@@ -71,4 +71,4 @@ jobs:
       run: helm upgrade --install producer ./helm-charts/producer
 
     - name: Clean up
-      run: rm kubeconfig
+      run: rm $HOME/.kube/config
