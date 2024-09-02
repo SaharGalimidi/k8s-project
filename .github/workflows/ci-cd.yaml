@@ -43,32 +43,29 @@ jobs:
     steps:
     - uses: actions/checkout@v2
 
-    - name: Set up kubectl
-      uses: azure/setup-kubectl@v4
-
-    - name: Install Helm
-      uses: azure/setup-helm@v4.2.0
-      id: install
-
-    - name: Set up kubeconfig
+    - name : Install Helm
       run: |
-        echo "${{ secrets.KUBE_CONFIG }}" | base64 --decode > $HOME/.kube/config
-        chmod 600 $HOME/.kube/config
-        export KUBECONFIG=$HOME/.kube/config
+        curl -fsSL -o get_helm.sh https://raw.githubusercontent.com/helm/helm/master/scripts/get-helm-3
+        chmod 700 get_helm.sh
+        ./get_helm.sh
+    
+    - name: install kuberneters
+      run: |
+        curl -LO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl"
+        chmod +x kubectl
+        sudo mv kubectl /usr/local/bin/
 
-    - name: Test Kubernetes access
-      run: kubectl get nodes
+    - name: Add Helm Repo
+      run: helm repo add stable https://charts.helm.sh/stable
 
     - name: Deploy RabbitMQ
       run: |
-        helm repo add bitnami https://charts.bitnami.com/bitnami
-        helm install my-rabbitmq bitnami/rabbitmq --version 14.6.9 -f helm-charts/rabbitmq/values.yaml
+        helm install rabbitmq rmqp-example/helm-charts/rabbitmq
 
     - name: Deploy Consumer
-      run: helm upgrade --install consumer ./helm-charts/consumer
-
+      run: |
+        helm install consumer rmqp-example/helm-charts/consumer
+      
     - name: Deploy Producer
-      run: helm upgrade --install producer ./helm-charts/producer
-
-    - name: Clean up
-      run: rm $HOME/.kube/config
+      run: |
+        helm install producer rmqp-example/helm-charts/producer
