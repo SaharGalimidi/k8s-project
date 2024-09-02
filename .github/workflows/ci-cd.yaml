@@ -60,12 +60,12 @@ jobs:
 
     - name: Deploy RabbitMQ
       run: |
-        helm install rabbitmq rmqp-example/helm-charts/rabbitmq
+        helm install rabbitmq helm-charts/rabbitmq
 
     - name: Deploy Consumer
       run: |
-        helm install consumer rmqp-example/helm-charts/consumer
+        helm install consumer helm-charts/consumer
       
     - name: Deploy Producer
       run: |
-        helm install producer rmqp-example/helm-charts/producer
+        helm install producer helm-charts/producer
