@@ -1,0 +1,54 @@
+pipeline {
+    agent any
+    environment {
+        DOCKERHUB_CREDENTIALS = credentials('dockerhub-cred')
+    }
+    stages {
+        stage('Clone Repository') {
+            steps {
+                git branch: 'main', url: 'https://github.com/SaharGalimidi/k8s-project'
+            }
+        }
+        stage('Build Producer Image') {
+            steps {
+                script {
+                    docker.build("producer", "-f producer/Dockerfile .")
+                }
+            }
+        }
+        stage('Build Consumer Image') {
+            steps {
+                script {
+                    docker.build("consumer", "-f consumer/Dockerfile .")
+                }
+            }
+        }
+        stage('Push Producer Image') {
+            steps {
+                script {
+                    docker.withRegistry('https://index.docker.io/v1/', DOCKERHUB_CREDENTIALS) {
+                        docker.image("producer").push('latest')
+                    }
+                }
+            }
+        }
+        stage('Push Consumer Image') {
+            steps {
+                script {
+                    docker.withRegistry('https://index.docker.io/v1/', DOCKERHUB_CREDENTIALS) {
+                        docker.image("consumer").push('latest')
+                    }
+                }
+            }
+        }
+        stage('Deploy with Helm') {
+            steps {
+                    sh '''
+                        helm upgrade --install rabbitmq ./helm-charts/rabbitmq --namespace default
+                        helm upgrade --install producer ./helm-charts/producer --namespace default
+                        helm upgrade --install consumer ./helm-charts/consumer --namespace default
+                    '''
+                }
+        }
+    }
+}

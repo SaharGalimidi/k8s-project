@@ -1,0 +1,12 @@
+appName: jenkins
+namespace: jenkins
+replicas: 1
+
+image:
+  repository: jenkins/jenkins
+  tag: lts
+  pullPolicy: IfNotPresent
+
+persistentVolumeClaim:
+  name: jenkins-pvc
+  size: 10Gi
