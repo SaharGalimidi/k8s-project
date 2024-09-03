@@ -10,17 +10,6 @@ on:
 jobs:
   build-and-push:
     runs-on: ubuntu-latest
-    services:
-      rabbitmq:
-        image: rabbitmq:3-management
-        ports:
-          - 5672:5672  # RabbitMQ port
-          - 15672:15672 # RabbitMQ management UI port
-        options: > 
-          --health-cmd="rabbitmqctl status" 
-          --health-interval=10s 
-          --health-timeout=5s 
-          --health-retries=5
 
     steps:
     - uses: actions/checkout@v2
@@ -52,6 +41,18 @@ jobs:
   deploy:
     needs: build-and-push
     runs-on: ubuntu-latest
+    services:
+      rabbitmq:
+        image: rabbitmq:3-management
+        ports:
+          - 5672:5672  # RabbitMQ port
+          - 15672:15672 # RabbitMQ management UI port
+        options: > 
+          --health-cmd="rabbitmqctl status" 
+          --health-interval=10s 
+          --health-timeout=5s 
+          --health-retries=5
+
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
     steps:
     - uses: actions/checkout@v2
