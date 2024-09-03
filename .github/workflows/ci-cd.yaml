@@ -63,11 +63,11 @@ jobs:
         chmod +x kubectl
         sudo mv kubectl /usr/local/bin/
 
-    - name: Set up Kubeconfig
-      run: |
-        echo "${{ secrets.KUBE_CONFIG }}" > $HOME/.kube/config
-      env:
-        KUBECONFIG: ${{ secrets.KUBE_CONFIG }}
+    # - name: Set up Kubeconfig
+    #   run: |
+    #     echo "${{ secrets.KUBE_CONFIG }}" > $HOME/.kube/config
+    #   env:
+    #     KUBECONFIG: ${{ secrets.KUBE_CONFIG }}
 
     - name: Add Helm Repo
       run: helm repo add stable https://charts.helm.sh/stable
