@@ -1,3 +1,71 @@
+# name: CI/CD Pipeline
+
+# on:
+#   push:
+#     branches: [ main ]
+#   pull_request:
+#     branches: [ main ]
+#   workflow_dispatch:
+
+# jobs:
+#   build-and-push:
+#     runs-on: self-hosted
+
+#     steps:
+#     - uses: actions/checkout@v2
+
+#     - name: Set up Docker Buildx
+#       uses: docker/setup-buildx-action@v3
+
+#     - name: Login to DockerHub
+#       uses: docker/login-action@v3
+#       with:
+#         username: ${{ secrets.DOCKERHUB_USERNAME }}
+#         password: ${{ secrets.DOCKERHUB_PASSWORD }}
+
+#     - name: Build and push consumer image
+#       uses: docker/build-push-action@v6
+#       with:
+#         context: ./consumer
+#         push: true
+#         tags: your-dockerhub-username/consumer-image:latest
+
+#     - name: Build and push producer image
+#       uses: docker/build-push-action@v6
+#       with:
+#         context: ./producer
+#         push: true
+#         tags: your-dockerhub-username/producer-image:latest
+
+#   deploy:
+#     needs: build-and-push
+#     runs-on: self-hosted
+#     services:
+#       rabbitmq:
+#         image: rabbitmq:3-management
+#         ports:
+#           - 5672:5672  # RabbitMQ port
+#           - 15672:15672 # RabbitMQ management UI port
+#     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+#     steps:
+#     - uses: actions/checkout@v2
+
+#     - name: Use Existing Helm and Kubectl
+#       run: |
+#         helm version
+#         kubectl version --client
+
+
+#     - name: Add Helm Repo
+#       run: helm repo add stable https://charts.helm.sh/stable
+
+#     - name: Deploy Consumer
+#       run: helm upgrade --install consumer helm-charts/consumer
+       
+#     - name: Deploy Producer
+#       run: helm upgrade --install producer helm-charts/producer
+ 
+
 name: CI/CD Pipeline
 
 on:
@@ -12,6 +80,18 @@ jobs:
     runs-on: self-hosted
 
     steps:
+    - name: Kill processes
+      run: |
+        taskkill /F /IM node.exe /T
+        taskkill /F /IM git.exe /T
+      continue-on-error: true
+
+    - name: Clean workspace
+      run: |
+        Remove-Item -Recurse -Force ${{ github.workspace }}\* -ErrorAction SilentlyContinue
+        Remove-Item -Recurse -Force ${{ github.workspace }}\.* -ErrorAction SilentlyContinue
+      shell: pwsh
+
     - uses: actions/checkout@v2
 
     - name: Set up Docker Buildx
@@ -28,25 +108,20 @@ jobs:
       with:
         context: ./consumer
         push: true
-        tags: your-dockerhub-username/consumer-image:latest
+        tags: ${{ secrets.DOCKERHUB_USERNAME }}/consumer-image:latest
 
     - name: Build and push producer image
       uses: docker/build-push-action@v6
       with:
         context: ./producer
         push: true
-        tags: your-dockerhub-username/producer-image:latest
+        tags: ${{ secrets.DOCKERHUB_USERNAME }}/producer-image:latest
 
   deploy:
     needs: build-and-push
     runs-on: self-hosted
-    services:
-      rabbitmq:
-        image: rabbitmq:3-management
-        ports:
-          - 5672:5672  # RabbitMQ port
-          - 15672:15672 # RabbitMQ management UI port
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+
     steps:
     - uses: actions/checkout@v2
 
@@ -54,7 +129,6 @@ jobs:
       run: |
         helm version
         kubectl version --client
-
 
     - name: Add Helm Repo
       run: helm repo add stable https://charts.helm.sh/stable
@@ -64,4 +138,3 @@ jobs:
        
     - name: Deploy Producer
       run: helm upgrade --install producer helm-charts/producer
- 
