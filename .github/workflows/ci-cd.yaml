@@ -10,6 +10,18 @@ on:
 jobs:
   build-and-push:
     runs-on: ubuntu-latest
+    services:
+      rabbitmq:
+        image: rabbitmq:3-management
+        ports:
+          - 5672:5672  # RabbitMQ port
+          - 15672:15672 # RabbitMQ management UI port
+        options: > 
+          --health-cmd="rabbitmqctl status" 
+          --health-interval=10s 
+          --health-timeout=5s 
+          --health-retries=5
+
     steps:
     - uses: actions/checkout@v2
 
@@ -23,16 +35,17 @@ jobs:
         password: ${{ secrets.DOCKERHUB_PASSWORD }}
 
     - name: Build and push consumer image
-      uses: docker/build-push-action@v2
+      uses: docker/build-push-action@v6
       with:
         context: ./consumer
         push: true
         tags: sahar567/consumer-image:latest
 
+    
     - name: Build and push producer image
-      uses: docker/build-push-action@v2
+      uses: docker/build-push-action@v6
       with:
-        context: ./producer
+        context: producer
         push: true
         tags: sahar567/producer-image:latest
 
@@ -64,11 +77,11 @@ jobs:
     - name: Add Helm Repo
       run: helm repo add stable https://charts.helm.sh/stable
 
-    - name: Deploy RabbitMQ
-      run: helm install rabbitmq helm-charts/rabbitmq
+    # - name: Deploy RabbitMQ
+    #   run: helm upgrade --install rabbitmq helm-charts/rabbitmq
 
     - name: Deploy Consumer
-      run: helm install consumer helm-charts/consumer
+      run: helm upgrade --install consumer helm-charts/consumer
       
     - name: Deploy Producer
-      run: helm install producer helm-charts/producer
+      run: helm upgrade --install producer helm-charts/producer
