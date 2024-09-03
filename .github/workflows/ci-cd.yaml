@@ -86,11 +86,11 @@ jobs:
         taskkill /F /IM git.exe /T
       continue-on-error: true
 
-    - name: Clean workspace
-      run: |
-        Remove-Item -Recurse -Force ${{ github.workspace }}\* -ErrorAction SilentlyContinue
-        Remove-Item -Recurse -Force ${{ github.workspace }}\.* -ErrorAction SilentlyContinue
-      shell: pwsh
+    # - name: Clean workspace
+    #   run: |
+    #     Remove-Item -Recurse -Force ${{ github.workspace }}\* -ErrorAction SilentlyContinue
+    #     Remove-Item -Recurse -Force ${{ github.workspace }}\.* -ErrorAction SilentlyContinue
+    #   shell: pwsh
 
     - uses: actions/checkout@v2
 
