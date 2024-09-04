@@ -49,7 +49,7 @@ jobs:
 
     - name: Use Existing Helm and Kubectl
       run: |
-        helm version
+        helm version 
         kubectl version --client
 
     - name: Add Helm Repo
