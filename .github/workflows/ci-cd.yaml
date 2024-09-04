@@ -80,19 +80,9 @@ jobs:
     runs-on: self-hosted
 
     steps:
-    - name: Kill processes
-      run: |
-        taskkill /F /IM node.exe /T
-        taskkill /F /IM git.exe /T
-      continue-on-error: true
 
-    # - name: Clean workspace
-    #   run: |
-    #     Remove-Item -Recurse -Force ${{ github.workspace }}\* -ErrorAction SilentlyContinue
-    #     Remove-Item -Recurse -Force ${{ github.workspace }}\.* -ErrorAction SilentlyContinue
-    #   shell: pwsh
-
-    - uses: actions/checkout@v2
+    - name: Checkout code
+      uses: actions/checkout@v2
 
     - name: Set up Docker Buildx
       uses: docker/setup-buildx-action@v3
